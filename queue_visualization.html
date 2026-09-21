@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ТВ · ЛР №2 · Визуализация системы обслуживания</title>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+  chtml: {scale: 0.96},
+  options: {skipHtmlTags: ['script','noscript','style','textarea','pre','code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#fff;
+  --ink:#16181d;
+  --muted:#697386;
+  --line:#e4e8ef;
+  --line-strong:#d4d9e2;
+  --accent:#315efb;
+  --accent-soft:#eef2ff;
+  --incoming:#7c5ce7;
+  --queue:#315efb;
+  --served:#169c72;
+  --exit:#6f7a8d;
+  --danger:#d44a5a;
+  --shadow:0 14px 38px rgba(31,42,68,.07);
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit}
+button:focus-visible,select:focus-visible{outline:3px solid rgba(49,94,251,.22);outline-offset:2px}
+.page{max-width:1180px;margin:0 auto;padding:34px 22px 52px}
+.header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:20px}
+.kicker{font-size:12px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+h1{margin:0 0 10px;font-size:31px;line-height:1.14;letter-spacing:-.025em}
+.lead{max-width:860px;margin:0;color:var(--muted);font-size:15px;line-height:1.62}
+.header-badge{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:12px}
+
+.model-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:18px 0 16px;box-shadow:0 7px 22px rgba(31,42,68,.035)}
+.model-grid{display:grid;grid-template-columns:1.1fr 1.4fr;gap:18px;align-items:center}
+.model-copy{font-size:13px;line-height:1.55;color:var(--muted)}
+.model-copy strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+.formula-box{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.formula{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fbfcfe;min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:17px;overflow:hidden}
+.formula mjx-container{margin:0!important}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:14px}
+.segment{display:flex;padding:3px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.segment button{border:0;background:transparent;padding:8px 11px;border-radius:9px;color:var(--muted);cursor:pointer}
+.segment button.active{background:var(--accent-soft);color:var(--accent);font-weight:650}
+.action{border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--ink)}
+.action.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:650}
+.speed{margin-left:auto;display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}
+.speed select{border:1px solid var(--line);border-radius:9px;background:var(--card);padding:8px 28px 8px 9px;color:var(--ink)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(270px,.75fr);gap:15px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.stage-card{overflow:hidden}
+.stage-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}
+.stage-title{font-weight:700}
+.phase{font-size:12px;color:var(--muted);text-align:right}
+.stage{position:relative;height:455px;background:linear-gradient(180deg,#fcfdff 0%,#f8faff 100%);overflow:hidden}
+.lane-label{position:absolute;top:25px;font-size:11px;color:var(--muted);font-weight:650;letter-spacing:.015em;text-transform:uppercase}
+.lbl-in{left:4%}.lbl-q{left:33%}.lbl-s{left:65%}.lbl-out{right:5%}
+.sep{position:absolute;top:57px;bottom:96px;border-left:1px dashed #d9dee8}.sep1{left:18%}.sep2{left:61%}.sep3{left:84%}
+.arrow{position:absolute;top:47%;font-size:21px;color:#aeb7c7}.a1{left:16.9%}.a2{left:59.8%}.a3{left:82.8%}
+.queue-guide{position:absolute;left:21.5%;top:31%;width:37%;height:42%;border:1px solid #e4e8ef;border-radius:18px;background:rgba(255,255,255,.56)}
+.queue-guide:after{content:"очередь";position:absolute;right:13px;bottom:10px;font-size:10px;color:#b0b7c4}
+.service{position:absolute;left:64.2%;top:27%;width:15.2%;display:grid;gap:12px}
+.slot{height:52px;border:1px solid var(--line-strong);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);box-shadow:0 5px 13px rgba(34,47,75,.04)}
+.dot{position:absolute;width:30px;height:30px;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;transition:left .48s cubic-bezier(.2,.8,.2,1),top .48s cubic-bezier(.2,.8,.2,1),opacity .35s ease,background .35s ease,transform .35s ease;box-shadow:0 4px 11px rgba(24,35,60,.12);z-index:4}
+.dot span{font-size:9px;font-weight:750;color:#fff;pointer-events:none}
+.dot.incoming{background:var(--incoming)}
+.dot.queue{background:var(--queue)}
+.dot.served{background:var(--served);border-radius:8px}
+.dot.exit{background:var(--exit);transform:translate(-50%,-50%) scale(.86)}
+.timeline{position:absolute;left:4%;right:4%;bottom:17px;height:68px;border-top:1px solid var(--line);padding-top:9px}
+.timeline .caption{position:absolute;left:0;top:11px;color:var(--muted);font-size:11px}
+#spark{position:absolute;left:52px;right:0;top:6px;width:calc(100% - 52px);height:52px;overflow:visible}
+.legend{padding:0 17px 14px;display:flex;flex-wrap:wrap;gap:13px;color:var(--muted);font-size:11px}
+.legend-item{display:flex;align-items:center;gap:6px}.swatch{width:9px;height:9px;border-radius:50%}.swatch.sq{border-radius:3px}
+
+.side{display:grid;gap:13px}
+.side .card{padding:15px 16px}
+.side h3{margin:0 0 11px;font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.metric{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fbfcfe}
+.metric .k{font-size:10px;color:var(--muted);line-height:1.3;min-height:26px}
+.metric .v{font-size:24px;font-weight:720;letter-spacing:-.025em;margin-top:3px}
+.metric .symbol{font-size:12px;color:var(--muted);margin-left:3px;font-weight:500}
+.status{margin-top:10px;border-left:3px solid var(--accent);background:var(--accent-soft);padding:9px 10px;border-radius:8px;font-size:12px;line-height:1.45;color:#38415a}
+.def-list{display:grid;gap:8px}
+.def-row{display:grid;grid-template-columns:55px 1fr;gap:8px;align-items:center}
+.def-row .symbol{font-size:15px;text-align:center;background:#fbfcfe;border:1px solid var(--line);border-radius:9px;padding:7px 4px}
+.def-row .text{font-size:12px;color:var(--muted);line-height:1.35}
+.note{font-size:12.5px;line-height:1.58;color:#4d5668}
+.note strong{color:var(--ink)}
+.note mjx-container{font-size:102%!important}
+.footer-note{margin-top:15px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 15px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+.footer-note strong{color:var(--ink)}
+
+@media(max-width:900px){
+  .header{display:block}.header-badge{display:inline-block;margin-top:12px}
+  .model-grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.speed{margin-left:0}.stage{height:430px}
+}
+@media(max-width:560px){
+  .page{padding:22px 12px 34px}h1{font-size:25px}.formula-box{grid-template-columns:1fr}.segment{width:100%;overflow:auto}.segment button{white-space:nowrap}.stage{height:405px}.metrics{grid-template-columns:1fr 1fr}.dot{width:27px;height:27px}.service{left:65%;width:14%}
+}
+@media(prefers-reduced-motion:reduce){.dot{transition:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="kicker">Теория вероятностей · Лабораторная работа №2</div>
+      <h1>Пример визуализации системы обслуживания</h1>
+      <p class="lead">Демонстрация показывает, как можно визуально представить поступление заявок, изменение очереди и работу каналов обслуживания в дискретном времени.</p>
+    </div>
+    <div class="header-badge">демонстрационный пример</div>
+  </div>
+
+  <section class="model-card" aria-label="Математическая модель">
+    <div class="model-grid">
+      <div class="model-copy">
+        <strong>Базовая модель</strong>
+        В каждом интервале поступает случайное число заявок, а система способна обслужить не более \(c\) заявок. После обслуживания оставшиеся заявки переходят в следующий интервал.
+      </div>
+      <div class="formula-box">
+        <div class="formula">\(X_n\sim\operatorname{Pois}(\lambda)\)</div>
+        <div class="formula">\(Q_n=\max\{0,Q_{n-1}+X_n-c\}\)</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="segment" id="scenarioButtons" aria-label="Сценарий нагрузки">
+      <button type="button" data-scenario="calm" class="active">Спокойный режим</button>
+      <button type="button" data-scenario="edge">Высокая нагрузка</button>
+      <button type="button" data-scenario="over">Перегрузка</button>
+    </div>
+    <button type="button" id="play" class="action primary">▶ Пуск</button>
+    <button type="button" id="step" class="action">Шаг</button>
+    <button type="button" id="reset" class="action">Сначала</button>
+    <label class="speed">Скорость
+      <select id="speed">
+        <option value="1250">0.75×</option>
+        <option value="860" selected>1×</option>
+        <option value="560">1.5×</option>
+        <option value="360">2×</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="layout">
+    <section class="card stage-card">
+      <div class="stage-head">
+        <div class="stage-title" id="scenarioTitle">Спокойный режим</div>
+        <div class="phase" id="phaseText">Интервал 1</div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="lane-label lbl-in">Поступление</div>
+        <div class="lane-label lbl-q">Очередь</div>
+        <div class="lane-label lbl-s">Каналы</div>
+        <div class="lane-label lbl-out">Выход</div>
+        <div class="sep sep1"></div><div class="sep sep2"></div><div class="sep sep3"></div>
+        <div class="arrow a1">→</div><div class="arrow a2">→</div><div class="arrow a3">→</div>
+        <div class="queue-guide"></div>
+        <div class="service">
+          <div class="slot">канал 1</div>
+          <div class="slot">канал 2</div>
+          <div class="slot">канал 3</div>
+        </div>
+        <div class="timeline">
+          <div class="caption">\(Q_n\)</div>
+          <svg id="spark" viewBox="0 0 800 52" preserveAspectRatio="none" aria-label="Изменение длины очереди"></svg>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:var(--incoming)"></span>новые заявки</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--queue)"></span>очередь</div>
+        <div class="legend-item"><span class="swatch sq" style="background:var(--served)"></span>обслуживание</div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h3>Текущий интервал</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Новые заявки</div><div class="v"><span id="mX">0</span><span class="symbol">\(X_n\)</span></div></div>
+          <div class="metric"><div class="k">Обслужено</div><div class="v"><span id="mB">0</span><span class="symbol">\(B_n\)</span></div></div>
+          <div class="metric"><div class="k">Очередь после обслуживания</div><div class="v"><span id="mQ">0</span><span class="symbol">\(Q_n\)</span></div></div>
+          <div class="metric"><div class="k">Пропускная способность</div><div class="v">3<span class="symbol">\(c\)</span></div></div>
+        </div>
+        <div class="status" id="status">Очередь успевает разгружаться.</div>
+      </section>
+
+      <section class="card">
+        <h3>Обозначения</h3>
+        <div class="def-list">
+          <div class="def-row"><div class="symbol">\(X_n\)</div><div class="text">число новых заявок за интервал</div></div>
+          <div class="def-row"><div class="symbol">\(B_n\)</div><div class="text">число заявок, обслуженных за интервал</div></div>
+          <div class="def-row"><div class="symbol">\(Q_n\)</div><div class="text">число заявок, оставшихся в очереди</div></div>
+          <div class="def-row"><div class="symbol">\(c\)</div><div class="text">пропускная способность системы</div></div>
+        </div>
+      </section>
+
+      <section class="card note">
+        <h3>Как использовать пример</h3>
+        <div>В демонстрации используются заранее подготовленные последовательности \(X_n\), \(B_n\) и \(Q_n\). Они показывают только один из возможных способов представить работу системы во времени. В своей лабораторной работе <strong>Вы самостоятельно строите модель, получаете эти величины и анализируете результаты</strong>.</div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="footer-note"><strong>Вы можете выбрать другой способ визуализации.</strong> Важно, чтобы по ней можно было проследить поступление заявок, обслуживание и изменение очереди во времени, а полученный результат можно было содержательно интерпретировать.</div>
+</div>
+
+<script>
+(() => {
+  const scenarios = {
+    calm: {
+      title:'Спокойный режим',
+      arrivals:[1,2,0,3,1,2,1,0,2,1,1,2],
+      served:[1,2,0,3,1,2,1,0,2,1,1,2],
+      q:[0,0,0,0,0,0,0,0,0,0,0,0],
+      note:'Очередь успевает разгружаться.'
+    },
+    edge: {
+      title:'Высокая нагрузка',
+      arrivals:[2,4,3,2,5,1,4,3,2,5,1,4],
+      served:[2,3,3,3,3,3,3,3,3,3,3,3],
+      q:[0,1,1,0,2,0,1,1,0,2,0,1],
+      note:'Очередь возникает и исчезает: система работает при высокой нагрузке.'
+    },
+    over: {
+      title:'Перегрузка',
+      arrivals:[4,5,3,6,4,5,4,6,5,4,6,5],
+      served:[3,3,3,3,3,3,3,3,3,3,3,3],
+      q:[1,3,3,6,7,9,10,13,15,16,19,21],
+      note:'Поступающие заявки систематически накапливаются в очереди.'
+    }
+  };
+
+  const stage = document.getElementById('stage');
+  const title = document.getElementById('scenarioTitle');
+  const phaseText = document.getElementById('phaseText');
+  const mX = document.getElementById('mX');
+  const mB = document.getElementById('mB');
+  const mQ = document.getElementById('mQ');
+  const status = document.getElementById('status');
+  const spark = document.getElementById('spark');
+  const play = document.getElementById('play');
+  const step = document.getElementById('step');
+  const reset = document.getElementById('reset');
+  const speed = document.getElementById('speed');
+
+  let key='calm', idx=0, timer=null, playing=false, nextId=1, queueIds=[];
+
+  function clearDots(){ stage.querySelectorAll('.dot').forEach(el => el.remove()); }
+  function stop(){
+    if(timer){ clearTimeout(timer); timer=null; }
+    playing=false;
+    play.textContent='▶ Пуск';
+  }
+  function qPositions(n){
+    const pts=[], cols=6;
+    for(let i=0;i<n;i++){
+      const row=Math.floor(i/cols), col=i%cols;
+      const x=(row%2===0 ? 54-col*5.3 : 27.5+col*5.3);
+      const y=43+row*10.6;
+      pts.push([x,y]);
+    }
+    return pts;
+  }
+  function addDot(id, cls, left, top){
+    const d=document.createElement('div');
+    d.className='dot '+cls;
+    d.style.left=left+'%';
+    d.style.top=top+'%';
+    const s=document.createElement('span');
+    s.textContent=id;
+    d.appendChild(s);
+    stage.appendChild(d);
+    return d;
+  }
+  function drawSpark(q, upto){
+    const vals=q.slice(0,upto+1), max=Math.max(1,...q), w=800, h=44;
+    const pts=vals.map((v,i)=>`${i*(w/(q.length-1))},${h-(v/max)*33-5}`).join(' ');
+    const last=vals.length ? vals[vals.length-1] : 0;
+    const lx=vals.length ? (vals.length-1)*(w/(q.length-1)) : 0;
+    const ly=h-(last/max)*33-5;
+    spark.innerHTML=`<line x1="0" y1="39" x2="800" y2="39" stroke="#e2e6ed" stroke-width="1"/><polyline points="${pts}" fill="none" stroke="#315efb" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx}" cy="${ly}" r="4.2" fill="#315efb"/>`;
+  }
+  function paintStable(s, displayIdx=Math.max(0,idx-1)){
+    clearDots();
+    const qp=qPositions(queueIds.length);
+    queueIds.forEach((id,i)=>addDot(id,'queue',qp[i][0],qp[i][1]));
+    const j=Math.min(displayIdx,s.arrivals.length-1);
+    mX.textContent=s.arrivals[j]; mB.textContent=s.served[j]; mQ.textContent=s.q[j];
+    status.textContent=s.note; drawSpark(s.q,j);
+  }
+  function animateInterval(done){
+    const s=scenarios[key];
+    if(idx>=s.arrivals.length){ stop(); phaseText.textContent='Демонстрация завершена'; return; }
+
+    const arrivals=s.arrivals[idx], served=s.served[idx], qAfter=s.q[idx];
+    phaseText.textContent=`Интервал ${idx+1} из ${s.arrivals.length} · поступление`;
+    mX.textContent=arrivals; mB.textContent=served; mQ.textContent=qAfter; status.textContent=s.note;
+
+    const newIds=Array.from({length:arrivals},()=>nextId++);
+    const existing=queueIds.slice();
+    const before=existing.concat(newIds);
+    const qpBefore=qPositions(before.length);
+    clearDots();
+
+    existing.forEach((id,i)=>addDot(id,'queue',qpBefore[i][0],qpBefore[i][1]));
+    const newEls=newIds.map((id,j)=>addDot(id,'incoming',4-j*2.8,42+j*4.7));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      newEls.forEach((el,j)=>{
+        const p=qpBefore[existing.length+j] || [24,69];
+        el.style.left=p[0]+'%'; el.style.top=p[1]+'%';
+      });
+    }));
+
+    const delay=Number(speed.value);
+    setTimeout(()=>{
+      phaseText.textContent=`Интервал ${idx+1} из ${s.arrivals.length} · обслуживание`;
+      const all=[...stage.querySelectorAll('.dot')];
+      const servedIds=before.slice(0,served), remaining=before.slice(served), qpAfter=qPositions(remaining.length);
+      servedIds.forEach((id,j)=>{
+        const el=all.find(x=>x.textContent===String(id));
+        if(el){ el.className='dot served'; el.style.left='71.8%'; el.style.top=(32+j*13.4)+'%'; }
+      });
+      remaining.forEach((id,j)=>{
+        const el=all.find(x=>x.textContent===String(id));
+        if(el){ el.className='dot queue'; el.style.left=qpAfter[j][0]+'%'; el.style.top=qpAfter[j][1]+'%'; }
+      });
+
+      setTimeout(()=>{
+        phaseText.textContent=`Интервал ${idx+1} из ${s.arrivals.length} · результат`;
+        servedIds.forEach((id,j)=>{
+          const el=[...stage.querySelectorAll('.dot')].find(x=>x.textContent===String(id));
+          if(el){ el.className='dot exit'; el.style.left=(91+j*1.2)+'%'; el.style.top='47%'; el.style.opacity='.08'; }
+        });
+        queueIds=remaining; drawSpark(s.q,idx);
+        const finished=idx; idx++;
+        setTimeout(()=>{ paintStable(s,finished); if(done) done(); }, Math.max(120,delay*.24));
+      },Math.max(220,delay*.50));
+    },Math.max(260,delay*.70));
+  }
+  function loop(){ if(!playing) return; animateInterval(()=>{ if(playing) timer=setTimeout(loop,100); }); }
+
+  play.addEventListener('click',()=>{
+    if(playing){ stop(); return; }
+    playing=true; play.textContent='❚❚ Пауза'; loop();
+  });
+  step.addEventListener('click',()=>{ stop(); animateInterval(); });
+  reset.addEventListener('click',()=>resetScenario(key));
+
+  function resetScenario(newKey){
+    stop(); key=newKey; idx=0; nextId=1; queueIds=[]; clearDots();
+    document.querySelectorAll('[data-scenario]').forEach(b=>b.classList.toggle('active',b.dataset.scenario===key));
+    title.textContent=scenarios[key].title;
+    mX.textContent='0'; mB.textContent='0'; mQ.textContent='0'; status.textContent=scenarios[key].note;
+    spark.innerHTML=''; phaseText.textContent='Интервал 1';
+  }
+
+  document.getElementById('scenarioButtons').addEventListener('click',e=>{
+    const newKey=e.target.dataset.scenario;
+    if(newKey) resetScenario(newKey);
+  });
+
+  status.textContent=scenarios[key].note;
+})();
+</script>
+</body>
+</html>
