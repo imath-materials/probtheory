@@ -145,6 +145,78 @@
       "lambda2": 0.397393101256
     },
     {
+      "track": "bio",
+      "variant": 13,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 1.938,
+      "mean_Y": 1.14,
+      "mean_T": 3.078,
+      "mean_ratio": 1.7,
+      "lambda1": 0.515995872033,
+      "lambda2": 0.877192982456
+    },
+    {
+      "track": "bio",
+      "variant": 14,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 1.26,
+      "mean_Y": 2.1798,
+      "mean_T": 3.4398,
+      "mean_ratio": 1.73,
+      "lambda1": 0.793650793651,
+      "lambda2": 0.458757684191
+    },
+    {
+      "track": "bio",
+      "variant": 15,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 1.7952,
+      "mean_Y": 1.02,
+      "mean_T": 2.8152,
+      "mean_ratio": 1.76,
+      "lambda1": 0.557040998217,
+      "lambda2": 0.980392156863
+    },
+    {
+      "track": "bio",
+      "variant": 16,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 1.22,
+      "mean_Y": 2.8792,
+      "mean_T": 4.0992,
+      "mean_ratio": 2.36,
+      "lambda1": 0.819672131148,
+      "lambda2": 0.347318699639
+    },
+    {
+      "track": "bio",
+      "variant": 17,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 2.5812,
+      "mean_Y": 1.08,
+      "mean_T": 3.6612,
+      "mean_ratio": 2.39,
+      "lambda1": 0.387416705408,
+      "lambda2": 0.925925925926
+    },
+    {
+      "track": "bio",
+      "variant": 18,
+      "family": "E",
+      "unit": "с",
+      "mean_X": 1.17,
+      "mean_Y": 2.8314,
+      "mean_T": 4.0014,
+      "mean_ratio": 2.42,
+      "lambda1": 0.854700854701,
+      "lambda2": 0.353182171364
+    },
+    {
       "track": "fbit",
       "variant": 1,
       "family": "U",
@@ -289,6 +361,78 @@
       "P2": 1088.208
     },
     {
+      "track": "fbit",
+      "variant": 13,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 401.28,
+      "mean_Y": 250.8,
+      "mean_T": 652.08,
+      "mean_ratio": 1.6,
+      "P1": 802.56,
+      "P2": 501.6
+    },
+    {
+      "track": "fbit",
+      "variant": 14,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 277.2,
+      "mean_Y": 454.608,
+      "mean_T": 731.808,
+      "mean_ratio": 1.64,
+      "P1": 554.4,
+      "P2": 909.216
+    },
+    {
+      "track": "fbit",
+      "variant": 15,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 376.992,
+      "mean_Y": 224.4,
+      "mean_T": 601.392,
+      "mean_ratio": 1.68,
+      "P1": 753.984,
+      "P2": 448.8
+    },
+    {
+      "track": "fbit",
+      "variant": 16,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 268.4,
+      "mean_Y": 461.648,
+      "mean_T": 730.048,
+      "mean_ratio": 1.72,
+      "P1": 536.8,
+      "P2": 923.296
+    },
+    {
+      "track": "fbit",
+      "variant": 17,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 555.984,
+      "mean_Y": 237.6,
+      "mean_T": 793.584,
+      "mean_ratio": 2.34,
+      "P1": 1111.968,
+      "P2": 475.2
+    },
+    {
+      "track": "fbit",
+      "variant": 18,
+      "family": "U",
+      "unit": "мс",
+      "mean_X": 257.4,
+      "mean_Y": 612.612,
+      "mean_T": 870.012,
+      "mean_ratio": 2.38,
+      "P1": 514.8,
+      "P2": 1225.224
+    },
+    {
       "track": "nano",
       "variant": 1,
       "family": "E",
@@ -431,6 +575,78 @@
       "mean_ratio": 2.34,
       "lambda1": 0.487329434698,
       "lambda2": 0.208260442179
+    },
+    {
+      "track": "nano",
+      "variant": 13,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 3.70386,
+      "mean_Y": 2.166,
+      "mean_T": 5.86986,
+      "mean_ratio": 1.71,
+      "lambda1": 0.269988606481,
+      "lambda2": 0.461680517082
+    },
+    {
+      "track": "nano",
+      "variant": 14,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 2.394,
+      "mean_Y": 4.16556,
+      "mean_T": 6.55956,
+      "mean_ratio": 1.74,
+      "lambda1": 0.417710944027,
+      "lambda2": 0.240063760935
+    },
+    {
+      "track": "nano",
+      "variant": 15,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 3.43026,
+      "mean_Y": 1.938,
+      "mean_T": 5.36826,
+      "mean_ratio": 1.77,
+      "lambda1": 0.291523091544,
+      "lambda2": 0.515995872033
+    },
+    {
+      "track": "nano",
+      "variant": 16,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 2.318,
+      "mean_Y": 5.49366,
+      "mean_T": 7.81166,
+      "mean_ratio": 2.37,
+      "lambda1": 0.431406384814,
+      "lambda2": 0.18202801047
+    },
+    {
+      "track": "nano",
+      "variant": 17,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 4.9248,
+      "mean_Y": 2.052,
+      "mean_T": 6.9768,
+      "mean_ratio": 2.4,
+      "lambda1": 0.203053931124,
+      "lambda2": 0.487329434698
+    },
+    {
+      "track": "nano",
+      "variant": 18,
+      "family": "E",
+      "unit": "мкс",
+      "mean_X": 2.223,
+      "mean_Y": 5.40189,
+      "mean_T": 7.62489,
+      "mean_ratio": 2.43,
+      "lambda1": 0.449842555106,
+      "lambda2": 0.185120393048
     }
   ]
 }

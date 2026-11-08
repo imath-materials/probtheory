@@ -1,13 +1,14 @@
-# Лабораторная работа № 3-4
+﻿# Лабораторная работа № 3-4
 
-**Две стадии: от скрытого времени к прогнозу**
+Теория вероятностей. Две последовательные стадии.
 
-- [Запустить интерактив](https://imath-materials.github.io/probtheory/lab3-4/)
-- [Условие для студентов (PDF)](docs/student.pdf)
-- [Автономная страница](start_standalone.html)
+- [Открыть лабораторную](https://imath-materials.github.io/probtheory/lab3-4/)
+- [Условие PDF](docs/student.pdf)
+- [Автономная версия](start_standalone.html)
 
-Направление задаётся параметром `track` (`bio`, `fbit`, `nano`), вариант – параметром `variant` (от `01` до `18`). Например:
+Доступны три направления: биоинженерия, ФБИТ, физика и наноструктуры.
+В каждом направлении 18 вариантов.
 
-`https://imath-materials.github.io/probtheory/lab3-4/?track=fbit&variant=18`
+Пример индивидуальной ссылки:
 
-Вариант также можно выбрать в верхней части страницы до начала измерений.
+https://imath-materials.github.io/probtheory/lab3-4/?track=fbit&variant=18
