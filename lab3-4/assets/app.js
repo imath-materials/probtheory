@@ -14,11 +14,10 @@ const pct = p => fmt(100*p,1)+' %';
 const clamp = (x,a,b) => Math.min(b,Math.max(a,x));
 const pos = x => Math.max(0,x);
 const theta = Math.PI*2;
-const VARIANT_COUNT = 18;
 const query = new URLSearchParams(location.search);
 const demo = query.get('demo')==='1'||query.get('mode')==='demo';
 const assignedTrack = Object.hasOwn(TRACKS,query.get('track'))?query.get('track'):'bio';
-const assignedVariant = /^\d+$/.test(query.get('variant')||'')&&Number(query.get('variant'))>=1&&Number(query.get('variant'))<=VARIANT_COUNT?Number(query.get('variant')):1;
+const assignedVariant = /^\d+$/.test(query.get('variant')||'')&&Number(query.get('variant'))>=1&&Number(query.get('variant'))<=12?Number(query.get('variant')):1;
 const probabilityInputs = ['decision-q0','decision-q1','decision-q2'];
 const numeric = id => {const raw=($(id)?.value||'').trim().replace(/\s/g,'').replace(',','.');if(!raw||!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw))return null;const n=Number(raw);return Number.isFinite(n)?n:null};
 const mathval=(x,d=3)=>`\\(${fmtMath(x,d)}\\)`;
@@ -50,19 +49,7 @@ function seedHash(str){let h=2166136261;for(let i=0;i<str.length;i++){h=Math.imu
 function random(){let x=state.rng=(state.rng+0x6D2B79F5)>>>0; x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296}
 const BASE_MEANS=[1.00,1.12,1.24,1.06,1.18,0.96,1.10,1.20,1.04,1.28,1.16,1.08];
 const RATIO_STARTS={bio:1.78,fbit:1.74,nano:1.79};
-const EXTRA_MEANS=[1.14,1.26,1.02,1.22,1.08,1.17];
-const EXTRA_RATIOS={
- bio:[1.70,1.73,1.76,2.36,2.39,2.42],
- fbit:[1.60,1.64,1.68,1.72,2.34,2.38],
- nano:[1.71,1.74,1.77,2.37,2.40,2.43]
-};
-function params(track,variant){
- const original=variant<=12;
- const m=original?BASE_MEANS[variant-1]:EXTRA_MEANS[variant-13];
- const r=original?Number((RATIO_STARTS[track]+0.05*(variant-1)).toFixed(2)):EXTRA_RATIOS[track][variant-13];
- const scale=track==='fbit'?220:track==='nano'?1.9:1;
- return {m1:(variant%2?m*r:m)*scale,m2:(variant%2?m:m*r)*scale};
-}
+function params(track,variant){const m=BASE_MEANS[variant-1];const r=Number((RATIO_STARTS[track]+0.05*(variant-1)).toFixed(2));const scale=track==='fbit'?220:track==='nano'?1.9:1;return {m1:(variant%2?m*r:m)*scale,m2:(variant%2?m:m*r)*scale}}
 function family(){return TRACKS[state.track].family}
 function profile(){return TRACKS[state.track]}
 function mu(){return state.params.m1+state.params.m2}
@@ -75,7 +62,7 @@ function conditional(t){const {m1,m2}=state.params;if(!(t>0))return null;if(fami
 function normalCDF(z){const t=1/(1+.2316419*Math.abs(z));const d=.3989422804014327*Math.exp(-z*z/2);const p=1-d*t*(.31938153+t*(-.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));return z>=0?p:1-p}
 function save(){try{localStorage.setItem('itmo-lr34-research-v1',JSON.stringify(state))}catch(e){}}
 function initial(track='bio',variant=1){const p=params(track,variant); const s={version:7,track,variant,params:p,rng:seedHash('itmo-lr34/'+track+'/'+variant),trials:[],sensor:false,prediction:null,predictionNote:'',sensorForecast:'',collapsed:{},modelRevealed:false,decisionForecast:'',decisionLocked:false,decisionVerification:null,decisionInputs:null,decisionAttempt:null,conditionalResponse:null,conditionalAttempts:0,conditionalCorrect:false,conditionalRevealed:false,batchN:100,batchAnswers:null,batchParamsVerified:false,batchParamAttempts:0,batchResults:{},batchReveals:{},batchPredictions:{},batchReveal:false,batchResult:null,threshold:1.15*(p.m1+p.m2),deadline:1.55*(p.m1+p.m2),createdAt:new Date().toISOString()};return s}
-function restore(){try{let s=JSON.parse(localStorage.getItem('itmo-lr34-research-v1'));if(s&&(s.version===1||s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7)&&TRACKS[s.track]&&s.variant>=1&&s.variant<=VARIANT_COUNT&&Array.isArray(s.trials)){if(s.version<6){state=initial(s.track,s.variant);return false;}const oldRelease=false,oldDecision=false,oldBatchThreshold=s.version===6;s.version=7;s.trials=s.trials.map(r=>r.measured?r:{t:r.t,measured:false});s.collapsed=s.collapsed||{};s.sensorForecast=s.sensorForecast||'';if(oldRelease){s.decisionLocked=false;s.decisionVerification=null;s.decisionChoice=null;s.decisionAttempt=null;s.decisionInputs=null;s.batchResult=null;s.conditionalResponse=null;s.conditionalAttempts=0;s.conditionalCorrect=false;s.conditionalRevealed=false;s.batchParamsVerified=false;s.batchParamAttempts=0;s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.decision=false;s.collapsed.batch=false;s.collapsed.model=false;}if(oldDecision){s.decisionLocked=false;s.decisionVerification=null;s.decisionAttempt=null;s.decisionInputs=null;s.decisionForecast='';s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.decision=false;s.collapsed.batch=false;}if(oldBatchThreshold){s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.batch=false;}state=s;state.decisionInputs=state.decisionInputs||null;state.decisionForecast=state.decisionForecast||'';state.decisionAttempt=state.decisionAttempt||null;state.conditionalResponse=state.conditionalResponse||null;state.batchN=state.batchN||100;state.batchAnswers=state.batchAnswers||null;state.batchReveal=!!state.batchReveal;state.conditionalAttempts=state.conditionalAttempts||0;state.conditionalCorrect=!!state.conditionalCorrect;state.conditionalRevealed=!!state.conditionalRevealed;state.batchParamsVerified=!!state.batchParamsVerified;state.batchParamAttempts=state.batchParamAttempts||0;state.batchResults=state.batchResults||{};state.batchReveals=state.batchReveals||{};state.batchPredictions=state.batchPredictions||{};return true}}catch(e){}state=initial();return false}
+function restore(){try{let s=JSON.parse(localStorage.getItem('itmo-lr34-research-v1'));if(s&&(s.version===1||s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7)&&TRACKS[s.track]&&s.variant>=1&&s.variant<=12&&Array.isArray(s.trials)){if(s.version<6){state=initial(s.track,s.variant);return false;}const oldRelease=false,oldDecision=false,oldBatchThreshold=s.version===6;s.version=7;s.trials=s.trials.map(r=>r.measured?r:{t:r.t,measured:false});s.collapsed=s.collapsed||{};s.sensorForecast=s.sensorForecast||'';if(oldRelease){s.decisionLocked=false;s.decisionVerification=null;s.decisionChoice=null;s.decisionAttempt=null;s.decisionInputs=null;s.batchResult=null;s.conditionalResponse=null;s.conditionalAttempts=0;s.conditionalCorrect=false;s.conditionalRevealed=false;s.batchParamsVerified=false;s.batchParamAttempts=0;s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.decision=false;s.collapsed.batch=false;s.collapsed.model=false;}if(oldDecision){s.decisionLocked=false;s.decisionVerification=null;s.decisionAttempt=null;s.decisionInputs=null;s.decisionForecast='';s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.decision=false;s.collapsed.batch=false;}if(oldBatchThreshold){s.batchResults={};s.batchReveals={};s.batchPredictions={};s.collapsed.batch=false;}state=s;state.decisionInputs=state.decisionInputs||null;state.decisionForecast=state.decisionForecast||'';state.decisionAttempt=state.decisionAttempt||null;state.conditionalResponse=state.conditionalResponse||null;state.batchN=state.batchN||100;state.batchAnswers=state.batchAnswers||null;state.batchReveal=!!state.batchReveal;state.conditionalAttempts=state.conditionalAttempts||0;state.conditionalCorrect=!!state.conditionalCorrect;state.conditionalRevealed=!!state.conditionalRevealed;state.batchParamsVerified=!!state.batchParamsVerified;state.batchParamAttempts=state.batchParamAttempts||0;state.batchResults=state.batchResults||{};state.batchReveals=state.batchReveals||{};state.batchPredictions=state.batchPredictions||{};return true}}catch(e){}state=initial();return false}
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('shown');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('shown'),3500)}
 function reset(track=state.track,variant=state.variant,ask=false){if(ask&&!confirm('Удалить текущие измерения и начать новый эксперимент? Экспортируйте журнал заранее, если он нужен.'))return;state=initial(track,variant);busy=false;save();renderAll();toast('Новая экспериментальная сессия готова.')}
 function unmeasured(){return state.trials.filter(t=>!t.measured).length}
@@ -94,9 +81,7 @@ const h=Math.min(17.4,293/Math.max(all.length,1)); all.forEach((r,i)=>{let y=y0+
 function renderMeasures(){const all=state.trials;const max=3.4*mu();$('threshold').max=String(max);state.threshold=clamp(state.threshold,0,max);$('threshold').value=state.threshold;$('threshold-label').textContent=fmt(state.threshold)+' '+profile().unit;$('threshold-max').textContent=fmt(max,1)+' '+profile().unit;const done=all.filter(v=>v.t<state.threshold).length;$('threshold-share').textContent=all.length?`${done} из ${all.length}  ·  ${pct(done/all.length)}`:'Нет наблюдений';$('traces').innerHTML=traceSVG()}
 function renderTrack(){
  const p=profile();
- $('setup-label').textContent=({'bio':'Биоинженерия','fbit':'ФБИТ','nano':'Физика и наноструктуры'}[state.track]);
- $('header-variant-value').textContent=String(state.variant).padStart(2,'0');
- $('header-variant-toggle').setAttribute('aria-label','Выбрать вариант. Текущий: '+String(state.variant).padStart(2,'0'));
+ $('setup-label').textContent=({'bio':'Биоинженерия','fbit':'ФБИТ','nano':'Физика и наноструктуры'}[state.track])+' · вариант '+String(state.variant).padStart(2,'0');
  $('track-code').textContent=p.code;
  $('instrument-title').textContent=p.title;$('instrument-description').textContent=p.description;$('unit-label').textContent=p.unit;
  $('apparatus').innerHTML=svgApparatus();$('fbit-phase').hidden=state.track!=='fbit';
@@ -387,45 +372,14 @@ function download(name,text,type){const blob=new Blob([text],{type}),url=URL.cre
 function initEvents(){
  $('demo-settings-trigger').addEventListener('click',()=>{const box=$('demo-settings'),next=box.hidden;box.hidden=!next;$('demo-settings-trigger').setAttribute('aria-expanded',String(next));});
  document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>{if(!demo||b.dataset.track===state.track)return;if(confirm('Сменить направление и начать новую сессию?'))reset(b.dataset.track,state.variant)}));
- const menu=$('variant-menu');for(let i=1;i<=VARIANT_COUNT;i++){const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.tabIndex=-1;b.dataset.variant=i;b.textContent=String(i).padStart(2,'0');menu.append(b);b.addEventListener('click',()=>chooseVariant(i));}
+ const menu=$('variant-menu');for(let i=1;i<=12;i++){const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.tabIndex=-1;b.dataset.variant=i;b.textContent=String(i).padStart(2,'0');menu.append(b);b.addEventListener('click',()=>chooseVariant(i));}
  function closeMenu(){menu.hidden=true;$('variant-menu-toggle').setAttribute('aria-expanded','false');}
  function chooseVariant(i){if(!demo)return;closeMenu();if(i===state.variant){$('variant-menu-toggle').focus();return}if(confirm('Сменить вариант и сбросить измерения?'))reset(state.track,i);$('variant-menu-toggle').focus()}
- $('variant-prev').addEventListener('click',()=>chooseVariant(state.variant===1?VARIANT_COUNT:state.variant-1));
- $('variant-next').addEventListener('click',()=>chooseVariant(state.variant===VARIANT_COUNT?1:state.variant+1));
+ $('variant-prev').addEventListener('click',()=>chooseVariant(state.variant===1?12:state.variant-1));
+ $('variant-next').addEventListener('click',()=>chooseVariant(state.variant===12?1:state.variant+1));
  $('variant-menu-toggle').addEventListener('click',()=>{menu.hidden=!menu.hidden;const opened=!menu.hidden;$('variant-menu-toggle').setAttribute('aria-expanded',String(opened));if(opened){const chosen=menu.querySelector(`[data-variant="${state.variant}"]`);chosen?.focus();}});
  menu.addEventListener('keydown',e=>{const items=[...menu.querySelectorAll('[role=option]')];const k=items.indexOf(document.activeElement);if(e.key==='Escape'){closeMenu();$('variant-menu-toggle').focus();e.preventDefault()}else if(['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const idx=e.key==='Home'?0:e.key==='End'?items.length-1:(k+(e.key==='ArrowDown'||e.key==='ArrowRight'?1:-1)+items.length)%items.length;items[idx].focus();}else if(e.key==='Enter'||e.key===' '){document.activeElement?.click();e.preventDefault()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.variant-nav'))closeMenu()});
-
- const headToggle=$('header-variant-toggle'), headMenu=$('header-variant-menu'),headOptions=$('header-variant-options');
- const closeHead=()=>{headMenu.hidden=true;headToggle.setAttribute('aria-expanded','false')};
- for(let i=1;i<=VARIANT_COUNT;i++){
-  const item=document.createElement('button');item.type='button';item.role='option';item.tabIndex=-1;
-  item.dataset.variant=i;item.textContent=String(i).padStart(2,'0');
-  item.setAttribute('aria-label','Вариант '+String(i).padStart(2,'0'));
-  item.addEventListener('click',()=>{
-   closeHead();if(i!==state.variant&&(!state.trials.length||confirm('Сменить вариант? Текущие измерения будут сброшены.')))reset(state.track,i);
-   headToggle.focus();
-  });headOptions.append(item);
- }
- headToggle.addEventListener('click',()=>{
-  const open=headMenu.hidden;headMenu.hidden=!open;headToggle.setAttribute('aria-expanded',String(open));
-  if(open){closeMenu();headOptions.querySelector(`[data-variant="${state.variant}"]`)?.focus()}
- });
- headOptions.addEventListener('keydown',e=>{
-  const items=[...headOptions.querySelectorAll('[role="option"]')],current=items.indexOf(document.activeElement);
-  if(e.key==='Escape'){closeHead();headToggle.focus();e.preventDefault()}
-  else if(['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(e.key)){
-   const forward=e.key==='ArrowRight'||e.key==='ArrowDown';
-   const ix=e.key==='Home'?0:e.key==='End'?items.length-1:(current+(forward?1:-1)+items.length)%items.length;
-   items[ix]?.focus();e.preventDefault();
-  }
- });
- headToggle.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){
-  e.preventDefault();headMenu.hidden=false;headToggle.setAttribute('aria-expanded','true');
-  headOptions.querySelector(`[data-variant="${state.variant}"]`)?.focus();
- }});
- document.addEventListener('click',e=>{if(!e.target.closest('.header-variant'))closeHead()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!headMenu.hidden){closeHead();headToggle.focus()}});
  $('reset').addEventListener('click',()=>reset(state.track,state.variant,true));$('student-reset').addEventListener('click',()=>reset(state.track,state.variant,true));
  $('one-trial').addEventListener('click',runOne);$('series').addEventListener('click',runSeries);
  $('threshold').addEventListener('input',e=>{state.threshold=Number(e.target.value);renderMeasures();save()});
